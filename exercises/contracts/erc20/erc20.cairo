@@ -1,20 +1,23 @@
 %lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
+from starkware.cairo.common.bitwise import bitwise_and, bitwise_xor
 from starkware.cairo.common.uint256 import (
     Uint256,
     uint256_le,
     uint256_unsigned_div_rem,
     uint256_sub,
+    uint256_signed_nn_le,
+    assert_uint256_eq,
+    assert_uint256_le
 )
 from starkware.starknet.common.syscalls import get_caller_address
-from starkware.cairo.common.math import unsigned_div_rem, assert_le_felt
 from starkware.cairo.common.math import (
     assert_not_zero,
     assert_not_equal,
     assert_nn,
     assert_le,
     assert_lt,
-    assert_in_range,
+    assert_in_range
 )
 from exercises.contracts.erc20.ERC20_base import (
     ERC20_name,
@@ -40,6 +43,15 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 
 // Storage
 //#########################################################################################
+
+@storage_var
+func admin() -> (name: felt) {
+}
+
+@storage_var
+func WL_addresses(address: felt) -> (res: felt) {
+}
+
 
 // View functions
 //#########################################################################################
@@ -98,48 +110,80 @@ func allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 // Externals
 //###############################################################################################
 
+
+//transfer function can only be used to transfer even amount.
 @external
-func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr,bitwise_ptr: BitwiseBuiltin*}(
     recipient: felt, amount: Uint256
 ) -> (success: felt) {
+    let (_,rem) = uint256_unsigned_div_rem(amount,Uint256(2,0));
+    let isEven = uint256_le(rem,Uint256(0,0));
+    with_attr error_message("NOT EVEN AMOUNT"){
+    assert_uint256_eq(rem,Uint256(0,0));
+    }
     ERC20_transfer(recipient, amount);
     return (1,);
 }
 
+//faucet function mints tokens to caller address, it reverts if amount is greater than 10 000.
 @external
 func faucet{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(amount: Uint256) -> (
     success: felt
 ) {
+    with_attr error_message("NOT EVEN AMOUNT"){
+    assert_uint256_le(amount,Uint256(10000,0));
+    }
     let (caller) = get_caller_address();
     ERC20_mint(caller, amount);
     return (1,);
 }
 
+
+//burn function sends 10% of the burnt amount to the owner and burn the remainer amount.
 @external
 func burn{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(amount: Uint256) -> (
     success: felt
 ) {
+    alloc_locals;
+    let (local caller) = get_caller_address();
+    let (local owner) = get_admin();
+    let (_10percentsOfAmount, _) = uint256_unsigned_div_rem(amount,Uint256(10,0));
+    let (_amountToBurn) = uint256_sub(amount,_10percentsOfAmount);
+    ERC20_transfer(owner, _10percentsOfAmount);
+    ERC20_burn(caller,_amountToBurn);
     return (1,);
 }
 
+//request_whitelist function whitelists the caller address.
 @external
 func request_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
     level_granted: felt
 ) {
-    return (level_granted,);
+    let (caller) = get_caller_address();
+    WL_addresses.write(caller, 1);
+    return (1,);
 }
 
+//check_whitelist function return 1 in the account is whitelisted, return 0 if it's not.
 @external
 func check_whitelist{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt
 ) -> (allowed_v: felt) {
-    return (allowed_v,);
+    let (caller) = get_caller_address();
+    let (isWL) = WL_addresses.read(caller);
+    return (isWL,);
 }
 
+//exclusive_faucet function mints any amount of tokens to the caller address, it requires the caller address to be whitelisted.
 @external
 func exclusive_faucet{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     amount: Uint256
 ) -> (success: felt) {
+    let (caller) = get_caller_address();
+    let (isWL) = check_whitelist(caller);
+    with_attr error_message("Caller is not whitelisted"){
+    assert isWL = 1;
+    }
+    ERC20_mint(caller, amount);
     return (success=1);
 }
-
