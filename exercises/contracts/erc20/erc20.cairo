@@ -130,7 +130,7 @@ func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr,bi
 func faucet{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(amount: Uint256) -> (
     success: felt
 ) {
-    with_attr error_message("NOT EVEN AMOUNT"){
+    with_attr error_message("AMOUNT GREATER THAN 10000"){
     assert_uint256_le(amount,Uint256(10000,0));
     }
     let (caller) = get_caller_address();
@@ -181,12 +181,13 @@ func exclusive_faucet{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
 ) -> (success: felt) {
     let (caller) = get_caller_address();
     let (isWL) = check_whitelist(caller);
-    with_attr error_message("Caller is not whitelisted"){
+    with_attr error_message("CALLER IS NOT WHITELISTED"){
     assert isWL = 1;
     }
     ERC20_mint(caller, amount);
     return (success=1);
 }
+<<<<<<< HEAD
 
 // @external
 // func exclusive_faucet{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -209,3 +210,5 @@ func exclusive_faucet{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
 //     }
 //     return (success=1);
 // }
+=======
+>>>>>>> 6c14453161d661735ab35748bcf0a6ded3048b77
