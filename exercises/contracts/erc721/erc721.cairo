@@ -21,7 +21,6 @@ func og_owner(tokenId: Uint256) -> (res: felt) {
 }
 
 
-
 //
 // Constructor
 //
@@ -32,7 +31,7 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 ) {
     ERC721.initializer(name, symbol);
     Ownable.initializer(owner);
-    count.write(Uint256(1,0));
+    count.write(Uint256(0,0));
     return ();
 }
 
@@ -55,13 +54,13 @@ func name{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> 
 }
 
 @view
-func getCount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (count: Uint256) {
-    let (count) = count.read();
-    return (count,);
+func getCounter{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (res: Uint256) {
+    let (res) = count.read();
+    return (res,);
 }
 
 @view
-func get_og_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(id: Uint256) -> (res: felt) {
+func getOriginalOwner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(id: Uint256) -> (res: felt) {
     let (res) = og_owner.read(id);
     return (res,);
 }
@@ -194,8 +193,8 @@ func renounceOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 }
 
 func _get_next_id{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}() -> (next_id: Uint256) {
-    let (count) = count.read();
-    let nextId = uint256_add(count,Uint256(1,0));
+    let (id) = count.read();
+    let (nextId,_) = uint256_add(id,Uint256(1,0));
     count.write(nextId);
     return (nextId,);
 }

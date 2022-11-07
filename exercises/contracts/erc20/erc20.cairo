@@ -187,7 +187,6 @@ func exclusive_faucet{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     ERC20_mint(caller, amount);
     return (success=1);
 }
-<<<<<<< HEAD
 
 // @external
 // func exclusive_faucet{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -210,5 +209,3 @@ func exclusive_faucet{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
 //     }
 //     return (success=1);
 // }
-=======
->>>>>>> 6c14453161d661735ab35748bcf0a6ded3048b77
