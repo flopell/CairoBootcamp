@@ -187,3 +187,25 @@ func exclusive_faucet{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_chec
     ERC20_mint(caller, amount);
     return (success=1);
 }
+
+// @external
+// func exclusive_faucet{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+//     amount: Uint256
+// ) -> (success: felt) {
+//     alloc_locals;
+//     let (local caller) = get_caller_address();
+//     let (local is_whitelisted) = check_whitelist(caller); 
+//     if(is_whitelisted == 1) {
+//          ERC20_mint(caller, amount);
+//          tempvar syscall_ptr=syscall_ptr;
+//          tempvar pedersen_ptr=pedersen_ptr;
+//          tempvar range_check_ptr=range_check_ptr;
+//     } else {
+//          let (local result) = faucet(amount);
+//          assert result = 1;
+//          tempvar syscall_ptr=syscall_ptr;
+//          tempvar pedersen_ptr=pedersen_ptr;
+//          tempvar range_check_ptr=range_check_ptr;
+//     }
+//     return (success=1);
+// }
