@@ -54,6 +54,7 @@ func test_create_consortium{
 
     // Check counter incremented
     let (con_idx) = consortium_idx.read();
+    %{ print(f"passing value: {ids.con_idx}") %}
     assert 1 = con_idx;
 
     // Check that caller set as chairperson
